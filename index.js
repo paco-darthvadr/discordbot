@@ -1,10 +1,83 @@
 const fs = require('node:fs');
 const path = require('node:path');
 const { Client, Collection, Events, GatewayIntentBits } = require('discord.js');
-const { token } = require('./config.json');
+const { roleId, guildId, token } = require('./config.json');
 require('dotenv').config();
+const express = require("express");
+const { VerusIdInterface } = require('verusid-ts-client');
+const { primitives } = require('verusid-ts-client');
+const bodyParser = require('body-parser');
 
-const client = new Client({ intents: [GatewayIntentBits.Guilds] });
+
+const client = new Client({ presence: { status: "invisible" }, intents: [GatewayIntentBits.Guilds] });
+
+const app = express();
+
+const port = process.env.PORT || 3000;
+
+const VERUS_RPC_NETWORK = process.env.TESTNET == 'true' ? process.env.TESTNET_VERUS_RPC_NETWORK : process.env.MAINNET_VERUS_RPC_NETWORK
+const SYSTEM_ID = process.env.TESTNET == 'true' ? "iJhCezBExJHvtyH3fGhNnt2NhU4Ztkf2yq" : "i5w5MuNik5NtLcYmNzcvaoixooEebB6MGV";
+
+
+const VerusId = new VerusIdInterface(SYSTEM_ID, VERUS_RPC_NETWORK);
+
+app.use(bodyParser.json());
+
+app.post("/registerdiscorduser", async (req, res) => {
+    try {
+
+        const data = req.body;
+        const usersDiscordId = req.query.id
+
+        // Parse the LoginConsentResponse 
+        const loginConsentResponse = new primitives.LoginConsentResponse(data);
+        console.log('Login Consent Response:', loginConsentResponse);
+
+		if(loginConsentResponse.decision.request.challenge.redirect_uris[0].uri.indexOf(usersDiscordId) == -1){
+			throw new Error("Wrong userID for challenge")
+		}
+
+        // Extract the necessary information from the loginConsentResponse
+
+        const success = await VerusId.verifyLoginConsentResponse(loginConsentResponse);
+  
+        if (!success) {
+            throw new Error("Signature does not match");
+        }
+
+        // Fetch Discord guild and member
+        const guild = client.guilds.cache.get(guildId);
+        if (!guild) {
+            throw new Error("Guild not found");
+        }
+
+        const member = await guild.members.fetch(usersDiscordId);
+        if (!member) {
+            throw new Error("Member not found");
+        }
+
+        // Fetch Discord role and add it to the member
+        const role = guild.roles.cache.get(roleId);
+        if (!role) {
+            throw new Error("Role not found");
+        }
+
+        await member.roles.add(role);
+        console.log(`Added role ${role.name} to user ${member.user.tag}`);
+
+        // Notify the member about successful verification
+        await member.send("VerusID successfully verified your profile. You have been given the verified role!");
+
+        res.send(true);
+    } catch (e) {
+        console.error(e);
+        res.status(500).send(false);
+    }
+});
+
+
+
+
 
 client.commands = new Collection();
 const foldersPath = path.join(__dirname, 'commands');
@@ -37,10 +110,6 @@ client.on(Events.InteractionCreate, async interaction => {
 		return;
 	} 
 
-	if (interaction.guildId != "1180350488256987177" && interaction.guildId != "797382165490171914"){
-		console.error(`unallowed discord server`);
-		return;
-	}
 
 	try {
 		await command.execute(interaction);
@@ -53,5 +122,9 @@ client.on(Events.InteractionCreate, async interaction => {
 		}
 	}
 });
+
+app.listen(port, () => {
+	console.log(`Server running on port ${port}`);
+  });
 
 client.login(token);
