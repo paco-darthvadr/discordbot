@@ -37,15 +37,17 @@ app.post("/registerdiscorduser", async (req, res) => {
 			throw new Error("Wrong userID for challenge")
 		}
 
-        // Extract the necessary information from the loginConsentResponse
-
         const success = await VerusId.verifyLoginConsentResponse(loginConsentResponse);
+
+        const responseFile = path.join(__dirname, 'utils', 'response.json');
+        fs.writeFileSync(responseFile, JSON.stringify(loginConsentResponse, null, 2));
+        console.log("login res saved")
   
         if (!success) {
             throw new Error("Signature does not match");
         }
 
-        // Fetch Discord guild and member
+
         const guild = client.guilds.cache.get(guildId);
         if (!guild) {
             throw new Error("Guild not found");
@@ -56,7 +58,6 @@ app.post("/registerdiscorduser", async (req, res) => {
             throw new Error("Member not found");
         }
 
-        // Fetch Discord role and add it to the member
         const role = guild.roles.cache.get(roleId);
         if (!role) {
             throw new Error("Role not found");
@@ -65,7 +66,6 @@ app.post("/registerdiscorduser", async (req, res) => {
         await member.roles.add(role);
         console.log(`Added role ${role.name} to user ${member.user.tag}`);
 
-        // Notify the member about successful verification
         await member.send("VerusID successfully verified your profile. You have been given the verified role!");
 
         res.send(true);
