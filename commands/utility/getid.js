@@ -62,3 +62,4 @@ module.exports = {
 	.setTimestamp()
 	.setFooter({ text: 'Sent from Verus', iconURL: 'https://cdn.discordapp.com/emojis/1239220413578350603.png' });
 };
+
