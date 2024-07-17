@@ -1,6 +1,7 @@
 const fs = require('node:fs');
 const path = require('node:path');
 
+
 const DATA_FILE = path.normalize(path.join(__dirname, 'processedChallenges.json'));
 const DISCORD_USERS = path.normalize(path.join(__dirname, 'discordUsers.json'));
 
@@ -33,15 +34,18 @@ function getDiscordUsers() {
   return discordUsers;
 }
 
-function setDiscordUsers(user) {
+function setDiscordUsers(user, data) {
   let discordUsers = {};
-  if (fs.existsSync(DISCORD_USERS)) {
-    const data = fs.readFileSync(DISCORD_USERS, 'utf8');
-    discordUsers = JSON.parse(data);
+  if(fs.existsSync(DISCORD_USERS)){
+    const userData = fs.readFileSync(DISCORD_USERS, 'utf-8');
+    discordUsers = JSON.parse(userData)
   }
-  discordUsers[user] = true;
-  const data = JSON.stringify(discordUsers, null, 2);
-  fs.writeFileSync(DISCORD_USERS, data);
+  discordUsers[user] = {
+    ...discordUsers[user], ...data,
+    timestamp: new Date().toISOString()
+  }
+  const userData = JSON.stringify(discordUsers, null, 2);
+  fs.writeFileSync(DISCORD_USERS, userData);
 }
 
 function checkDiscordUserExists(user) {
@@ -50,7 +54,16 @@ function checkDiscordUserExists(user) {
     const data = fs.readFileSync(DISCORD_USERS, 'utf8');
     discordUsers = JSON.parse(data);
   }
-  return discordUsers[user] ? true : false;
+  return discordUsers[user] && discordUsers[user].verified;
+}
+
+function updateDiscordUser(user, updateData){
+  let discordUsers = getDiscordUsers();
+  if(discordUsers[user]){
+    discordUsers[user] = { ...discordUsers[user], ...updateData };
+    const data = fs.readFileSync(DISCORD_USERS, 'utf-8');
+    const discordUsers = JSON.parse(data)
+  }
 }
 
 function deleteDiscordUser(user) {
@@ -70,3 +83,4 @@ exports.getDiscordUsers = getDiscordUsers;
 exports.setDiscordUsers = setDiscordUsers;
 exports.checkDiscordUserExists = checkDiscordUserExists;
 exports.deleteDiscordUser = deleteDiscordUser;
+exports.updateDiscordUser = updateDiscordUser

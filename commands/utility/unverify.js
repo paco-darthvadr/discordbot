@@ -1,6 +1,6 @@
 const { SlashCommandBuilder } = require('@discordjs/builders');
 const { roleId, guildId } = require('../../config.json');
-const { deleteDiscordUser } = require('../../utils/database')
+const { deleteDiscordUser, setDiscordUsers } = require('../../utils/database')
 const fs = require('fs');
 const path = require('path');
 
@@ -38,33 +38,12 @@ module.exports = {
                 await member.roles.remove(role);
                 await member.send("Your verified role has been removed.");
 
-                deleteDiscordUser(targetUser.id)
-
-                const logEntry = {
-                    userId: targetUser.id,
-                    username: targetUser.tag,
+                setDiscordUsers(targetUser.id, {
+                    verified: false,
+                    username: member.user.username,
+                    discrminator: member.user.discrminator,
+                    unverifiedBy: interaction.user.id,
                     timestamp: new Date().toISOString(),
-                    removedBy: interaction.user.tag,
-                };
-                const logFilePath = path.join(__dirname, '../logs/unverified_users.json');
-
-
-                if (!fs.existsSync(path.join(__dirname, '../logs'))) {
-                    fs.mkdirSync(path.join(__dirname, '../logs'));
-                }
-
-                fs.readFile(logFilePath, 'utf8', (err, data) => {
-                    if (err && err.code !== 'ENOENT') {
-                        console.error('Error reading log file:', err);
-                    } else {
-                        const logs = data ? JSON.parse(data) : [];
-                        logs.push(logEntry);
-                        fs.writeFile(logFilePath, JSON.stringify(logs, null, 2), err => {
-                            if (err) {
-                                console.error('Error writing log file:', err);
-                            }
-                        });
-                    }
                 });
 
                 return interaction.reply({ content: `Successfully removed the verified role from ${targetUser.tag}.`, ephemeral: true });

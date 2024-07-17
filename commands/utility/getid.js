@@ -8,8 +8,6 @@ require('dotenv').config();
 
 
 
-
-
 module.exports = {
 	data: new SlashCommandBuilder()
 	  .setName('getid')
@@ -40,7 +38,14 @@ module.exports = {
 		  files: [file],
 		});
   
-		setDiscordUsers(interaction.user.id);
+		//setDiscordUsers(interaction.user.id);
+
+		setDiscordUsers(interaction.user.id, {
+            verified: true,
+            username: interaction.user.username,
+            discrminator: interaction.user.discrminator,
+            verifiedAt: new Date().toISOString(),
+        });
   
 	  } catch (error) {
 		console.error(error);

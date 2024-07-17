@@ -3,4 +3,4 @@ node_modules
 src/processedChallenges.json
 config.json
 public
-utils/discordUsers.json
+src/discordUsers.json

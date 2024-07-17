@@ -7,6 +7,7 @@ const express = require("express");
 const { VerusIdInterface } = require('verusid-ts-client');
 const { primitives } = require('verusid-ts-client');
 const bodyParser = require('body-parser');
+const { setDiscordUsers, setProcessedChallenges } = require('./utils/database')
 
 
 const client = new Client({ presence: { status: "invisible" }, intents: [GatewayIntentBits.Guilds] });
@@ -38,15 +39,13 @@ app.post("/registerdiscorduser", async (req, res) => {
 		}
 
         const success = await VerusId.verifyLoginConsentResponse(loginConsentResponse);
-
-        const responseFile = path.join(__dirname, 'utils', 'response.json');
-        fs.writeFileSync(responseFile, JSON.stringify(loginConsentResponse, null, 2));
-        console.log("login res saved")
-  
+ 
         if (!success) {
             throw new Error("Signature does not match");
         }
 
+        setProcessedChallenges(usersDiscordId, loginConsentResponse);
+        console.log(`Saved Challenges for ${usersDiscordId}`)
 
         const guild = client.guilds.cache.get(guildId);
         if (!guild) {
@@ -67,6 +66,12 @@ app.post("/registerdiscorduser", async (req, res) => {
         console.log(`Added role ${role.name} to user ${member.user.tag}`);
 
         await member.send("VerusID successfully verified your profile. You have been given the verified role!");
+
+        setDiscordUsers(usersDiscordId, {
+            verified: true,
+            username: member.user.username,
+            timestamp: new Date().toISOString(),
+        });
 
         res.send(true);
     } catch (e) {
