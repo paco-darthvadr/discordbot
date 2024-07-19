@@ -1,5 +1,6 @@
 const { SlashCommandBuilder } = require('discord.js');
-const { checkDiscordUserExists, deleteDiscordUser } = require("../../utils/database.js")
+const { checkDiscordUserExists, deleteDiscordUser } = require("../../utils/database.js");
+const { adminRoleId, modRoleId } = require('../../config.json');
 
 module.exports = {
 	data: new SlashCommandBuilder()
@@ -8,10 +9,11 @@ module.exports = {
 		.addStringOption(option => option.setName('id').setDescription('Discord Users ID').setRequired(true)),
 	async execute(interaction) {
 
-		const userId = interaction.user.id;
-		if (userId !== '449450021109366795' && userId !== '454786445702463507') {
-			return await interaction.reply({ content: "usernot allowed to do that command",  ephemeral: true });
-		}
+        const member = interaction.member;
+
+        if(!member.roles.cache.has(adminRoleId) && !member.roles.cache.has(modRoleId)){
+            return interaction.reply({ content: 'You dont have permission for this command' })
+        }
 		const {value} = interaction.options.get('id');
 		console.log("user to delete: ", value);
 

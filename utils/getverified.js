@@ -21,7 +21,7 @@ const LOGIN_URL = process.env.TESTNET_LOGIN_URL
 const VALU_LOGIN_WIF = process.env.TESTNET == 'true' ? process.env.TESTNET_VALU_LOGIN_WIF : process.env.MAINNET_VALU_LOGIN_WIF
 
 // Login DEEPLINK
-const getdeeplink = async (userid) => {
+const getverified = async (userid) => {
 
   try {
     const challenge_id = generateChallengeID();
@@ -53,7 +53,7 @@ const getdeeplink = async (userid) => {
 
 };
 
-const getTinyUrl = async (deepLinkUrl) => {
+const getVerifiedTinyUrl = async (deepLinkUrl) => {
 
   try {
       const response = await axios.post('https://api.tinyurl.com/create', {
@@ -73,5 +73,5 @@ const getTinyUrl = async (deepLinkUrl) => {
 };
 
 
-exports.getdeeplink = getdeeplink;
-exports.getTinyUrl = getTinyUrl;
+exports.getverified = getverified;
+exports.getVerifiedTinyUrl = getVerifiedTinyUrl;

@@ -70,6 +70,7 @@ app.post("/registerdiscorduser", async (req, res) => {
         setDiscordUsers(usersDiscordId, {
             verified: true,
             username: member.user.username,
+            discrminator: member.user.discrminator,
             timestamp: new Date().toISOString(),
         });
 

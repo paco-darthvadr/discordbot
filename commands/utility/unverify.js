@@ -1,5 +1,5 @@
 const { SlashCommandBuilder } = require('@discordjs/builders');
-const { roleId, guildId } = require('../../config.json');
+const { roleId, guildId, adminRoleId, modRoleId } = require('../../config.json');
 const { deleteDiscordUser, setDiscordUsers } = require('../../utils/database')
 const fs = require('fs');
 const path = require('path');
@@ -14,8 +14,10 @@ module.exports = {
                 .setRequired(true)),
     async execute(interaction) {
         // Change to owner or whatever required
-        if (!interaction.member.permissions.has('ADMINISTRATOR')) {
-            return interaction.reply({ content: 'You do not have permission to use this command.', ephemeral: true });
+        const member = interaction.member;
+
+        if(!member.roles.cache.has(adminRoleId) && !member.roles.cache.has(modRoleId)){
+            return interaction.reply({ content: 'You dont have permission for this command' })
         }
 
         const targetUser = interaction.options.getUser('target');
