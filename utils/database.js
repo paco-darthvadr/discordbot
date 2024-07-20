@@ -54,7 +54,16 @@ function checkDiscordUserExists(user) {
     const data = fs.readFileSync(DISCORD_USERS, 'utf8');
     discordUsers = JSON.parse(data);
   }
-  return discordUsers[user] && discordUsers[user].verified;
+  return discordUsers[user] && discordUsers[user].verified && discordUsers[user].signingid;
+}
+
+function checksigningid(user){
+  let discordUsers = getDiscordUsers();
+  if (fs.existsSync(DISCORD_USERS)) {
+    const data = fs.readFileSync(DISCORD_USERS, 'utf8');
+    discordUsers = JSON.parse(data);
+  }
+  return discordUsers[user] && discordUsers[user].signingId;
 }
 
 function updateDiscordUser(user, updateData){
@@ -84,3 +93,4 @@ exports.setDiscordUsers = setDiscordUsers;
 exports.checkDiscordUserExists = checkDiscordUserExists;
 exports.deleteDiscordUser = deleteDiscordUser;
 exports.updateDiscordUser = updateDiscordUser
+exports.checksigningid = checksigningid;

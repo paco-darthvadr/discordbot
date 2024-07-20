@@ -4,8 +4,8 @@ const { I_ADDR_VERSION } = require('verus-typescript-primitives/dist/constants/v
 const axios = require('axios');
 require('dotenv').config();
 
-const VERUS_RPC_NETWORK = process.env.TESTNET == 'true' ? process.env.TESTNET_VERUS_RPC_NETWORK : process.env.TESTNET_VERUS_RPC_NETWORK 
-const VERUS_RPC_SYSTEM = process.env.TESTNET == 'true' ? "iJhCezBExJHvtyH3fGhNnt2NhU4Ztkf2yq" : "i5w5MuNik5NtLcYmNzcvaoixooEebB6MGV";
+const VERUS_RPC_NETWORK = process.env.TESTNET == 'true' ? process.env.TESTNET_VERUS_RPC_NETWORK : process.env.MAINNET_VERUS_RPC_NETWORK
+const VERUS_RPC_SYSTEM = process.env.TESTNET == 'true' ? "iJhCezBExJHvtyH3fGhNnt2NhU4Ztkf2yq" : "i5w5MuNik5NtLcYmNzcvaoixooEebB6MGV" ;
 const VerusId = new VerusIdInterface(VERUS_RPC_SYSTEM, VERUS_RPC_NETWORK);
 
 function generateChallengeID(len = 20) {
@@ -25,6 +25,7 @@ const getverified = async (userid) => {
 
   try {
     const challenge_id = generateChallengeID();
+    console.log(challenge_id)
 
     const response = await VerusId.createLoginConsentRequest(
       VALU_LOGIN_IADDRESS,
@@ -44,7 +45,7 @@ const getverified = async (userid) => {
     );
 
     console.log(response.toWalletDeeplinkUri())
-    console.log(response.challenge.redirect_uris)
+    console.log(response)
     return response.toWalletDeeplinkUri();
     
   } catch (e) {

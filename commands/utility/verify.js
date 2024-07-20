@@ -1,6 +1,6 @@
 const { SlashCommandBuilder, EmbedBuilder, AttachmentBuilder  } = require('discord.js');
 const { getverified, getVerifiedTinyUrl } = require("../../utils/getverified.js")
-const { checkDiscordUserExists, setDiscordUsers } = require("../../utils/database.js")
+const { checkDiscordUserExists, setDiscordUsers, getDiscordUsers } = require("../../utils/database.js")
 const wait = require('node:timers/promises').setTimeout;
 const qr = require('qr-image');
 const fs = require('fs');
@@ -10,9 +10,10 @@ const config = require('../../config.json');
 
 
 
+
 module.exports = {
 	data: new SlashCommandBuilder()
-	  .setName('verifyid')
+	  .setName('getverified')
 	  .setDescription('Get Verified'),
 	async execute(interaction) {
 	  try {

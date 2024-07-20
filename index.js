@@ -7,7 +7,7 @@ const express = require("express");
 const { VerusIdInterface } = require('verusid-ts-client');
 const { primitives } = require('verusid-ts-client');
 const bodyParser = require('body-parser');
-const { setDiscordUsers, setProcessedChallenges } = require('./utils/database')
+const { setDiscordUsers, setProcessedChallenges, checksigningid, getDiscordUsers, checkDiscordUserExists } = require('./utils/database')
 
 
 const client = new Client({ presence: { status: "invisible" }, intents: [GatewayIntentBits.Guilds] });
@@ -27,8 +27,11 @@ app.use(bodyParser.json());
 app.post("/registerdiscorduser", async (req, res) => {
     try {
 
+        const guild = client.guilds.cache.get(guildId);
+        
         const data = req.body;
         const usersDiscordId = req.query.id
+        const member = await guild.members.fetch(usersDiscordId);
 
         // Parse the LoginConsentResponse 
         const loginConsentResponse = new primitives.LoginConsentResponse(data);
@@ -37,6 +40,11 @@ app.post("/registerdiscorduser", async (req, res) => {
 		if(loginConsentResponse.decision.request.challenge.redirect_uris[0].uri.indexOf(usersDiscordId) == -1){
 			throw new Error("Wrong userID for challenge")
 		}
+        const signingId = loginConsentResponse.signing_id;
+        const discordUsers = getDiscordUsers();
+        console.log('signingid', signingId);
+
+
 
         const success = await VerusId.verifyLoginConsentResponse(loginConsentResponse);
  
@@ -44,15 +52,28 @@ app.post("/registerdiscorduser", async (req, res) => {
             throw new Error("Signature does not match");
         }
 
+        for(const userId in discordUsers){
+            if(discordUsers[userId].signingid === signingId){
+                const guild = client.guilds.cache.get(guildId);
+                if (!guild) {
+                    throw new Error("Guild not found");
+                }
+
+                if (member) {
+                    await member.send('This ID has already been used');
+                }
+                return res.status(400).send('This ID has already been used')
+            }
+        }
+
         setProcessedChallenges(usersDiscordId, loginConsentResponse);
         console.log(`Saved Challenges for ${usersDiscordId}`)
 
-        const guild = client.guilds.cache.get(guildId);
+        
         if (!guild) {
             throw new Error("Guild not found");
         }
 
-        const member = await guild.members.fetch(usersDiscordId);
         if (!member) {
             throw new Error("Member not found");
         }
@@ -71,6 +92,7 @@ app.post("/registerdiscorduser", async (req, res) => {
             verified: true,
             username: member.user.username,
             discrminator: member.user.discrminator,
+            signingid: signingId,
             timestamp: new Date().toISOString(),
         });
 

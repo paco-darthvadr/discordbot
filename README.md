@@ -6,6 +6,7 @@ https://github.com/paco-darthvadr/discordbot.git
  yarn install
 # create a config.json and add:
  token, clientId, guildId, roleId
+ maintenance, modRoleId, adminRoleId
 # deploy the commands, run:
  node deploy-commands.js
 # run the bot:
